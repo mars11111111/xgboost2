@@ -129,7 +129,7 @@ def predict():
             'B4': int(B4),
             'B5': int(B5),
             'smokeG': int(smoke),
-            'exerciseG3': int（exercise）,
+            'exerciseG3': int(exercise),
             '工龄': int(service_years),
             '工时分组': int(working_hours_group),
             '生活满意度': int(life_satisfaction),

@@ -8,18 +8,21 @@ import matplotlib.font_manager as fm
 import xgboost as xgb
 
 # 加载模型
-model = joblib.load('best_model_1.pkl')
+try:
+    model = joblib.load('best_model.pkl')
+except Exception as e:
+    st.write(f"Error loading model: {e}")
 
-# 获取模型输入特征数量
-model_input_features = model.feature_names_in_
+# 获取模型输入特征数量及顺序
+model_input_features = [ 'A2', 'A3', 'A5', 'B3', 'B4', 'B5', 'smokeG', 'exerciseG3', '年龄', '工龄', '工时分组', '生活满意度', '抑郁症状级别', '睡眠状况', '疲劳蓄积程度']
 expected_feature_count = len(model_input_features)
 
-# 定义新的 12 个特征选项及名称
+# 定义新的特征选项及名称
 cp_options = {
-    1: '重度职业紧张 (1)',
+    0: '无症状 (0)',
+    1: '轻度职业紧张 (1)',
     2: '中度职业紧张 (2)',
-    3: '轻度职业紧张 (3)',
-    4: '无症状 (4)'
+    3: '重度职业紧张 (3)'
 }
 
 # Streamlit 界面设置
@@ -28,11 +31,14 @@ st.title("职业紧张预测")
 # 年龄输入
 age = st.number_input("年龄：", min_value=1, max_value=120, value=50)
 
-# 在职工龄输入
-service_years = st.number_input("在职工龄（年）：", min_value=0, max_value=40, value=5)
+# 工龄输入
+service_years = st.number_input("工龄：", min_value=1, max_value=120, value=50)
+
+# 近一个月平均每天加班时间输入，对应 B3
+overtime_hours = st.number_input("近一个月平均每天加班时间：", min_value=1, max_value=120, value=50)
 
 # A2（性别）选择
-A2_options = {1: '女性', 0: '男性'}
+A2_options = {1: '男性', 2: '女性'}
 A2 = st.selectbox(
     "性别：",
     options=list(A2_options.keys()),
@@ -47,24 +53,16 @@ A3 = st.selectbox(
     format_func=lambda x: A3_options[x]
 )
 
-# A4（婚姻状况）选择
-A4_options = {0: '未婚', 1: '已婚住在一起', 2: '已婚分居或异地', 3: '离婚', 4: '丧偶'}
-A4 = st.selectbox(
-    "婚姻状况：",
-    options=list(A4_options.keys()),
-    format_func=lambda x: A4_options[x]
-)
-
-# A6（月收入）选择
-A6_options = {1: '少于 3000 元', 2: '3000 - 4999 元', 3: '5000 - 6999 元', 4: '7000 - 8999 元', 5: '9000 - 10999 元', 6: '11000 元及以上'}
-A6 = st.selectbox(
+# A5（月收入）选择
+A5_options = {1: '少于 3000 元', 2: '3000 - 4999 元', 3: '5000 - 6999 元', 4: '7000 - 8999 元', 5: '9000 - 10999 元', 6: '11000 元及以上'}
+A5 = st.selectbox(
     "月收入：",
-    options=list(A6_options.keys()),
-    format_func=lambda x: A6_options[x]
+    options=list(A5_options.keys()),
+    format_func=lambda x: A5_options[x]
 )
 
 # B4（是否轮班）选择
-B4_options = {0: '否', 1: '是'}
+B4_options = {1: '否', 2: '是'}
 B4 = st.selectbox(
     "是否轮班：",
     options=list(B4_options.keys()),
@@ -72,19 +70,35 @@ B4 = st.selectbox(
 )
 
 # B5（是否需要上夜班）选择
-B5_options = {0: '否', 1: '是'}
+B5_options = {1: '否', 2: '是'}
 B5 = st.selectbox(
     "是否需要上夜班：",
     options=list(B5_options.keys()),
     format_func=lambda x: B5_options[x]
 )
 
+# smoke（是否吸烟）选择
+smoke_options = {1: '是的', 2: '以前吸，但现在不吸了', 3: '从不吸烟'}
+smoke = st.selectbox(
+    "是否吸烟：",
+    options=list(smoke_options.keys()),
+    format_func=lambda x: smoke_options[x]
+)
+
 # 工时分组选择
-working_hours_group_options = {1: '少于 20 小时', 2: '20 - 30 小时', 3: '30 - 40 小时', 4: '40 - 50 小时', 5: '多于 50 小时'}
+working_hours_group_options = {1: '35 到 40 小时', 2: '40 到 48 小时', 3: '48 到 54 小时', 4: '54 到 105 小时'}
 working_hours_group = st.selectbox(
     "工时分组：",
     options=list(working_hours_group_options.keys()),
     format_func=lambda x: working_hours_group_options[x]
+)
+
+# exercise（是否有进行持续至少 30 分钟的中等强度锻炼）选择
+exercise_options = {1: '无', 2: '偶尔，1 - 3 次/月', 3: '有，1~3 次/周', 4: '经常，4~6 次/周', 5: '每天'}
+exercise = st.selectbox(
+    "是否有进行持续至少 30 分钟的中等强度锻炼：",
+    options=list(exercise_options.keys()),
+    format_func=lambda x: exercise_options[x]
 )
 
 # 生活满意度滑块
@@ -93,8 +107,11 @@ life_satisfaction = st.slider("生活满意度（1 - 5）：", min_value=1, max_
 # 睡眠状况滑块
 sleep_status = st.slider("睡眠状况（1 - 5）：", min_value=1, max_value=5, value=3)
 
-# 工作负担度滑块
-work_load = st.slider("工作负担度（1 - 5）：", min_value=1, max_value=5, value=3)
+# 疲劳积蓄程度滑块
+work_load = st.slider("疲劳积蓄程度（1 - 5）：", min_value=1, max_value=5, value=3)
+
+# 抑郁症状级别滑块
+depression_level = st.slider("抑郁症状级别（1 - 5）：", min_value=1, max_value=5, value=3)
 
 
 def predict():
@@ -102,18 +119,31 @@ def predict():
     进行职业紧张预测并生成建议和可视化。
     """
     try:
-        feature_values = [
-            age, service_years, A2, A3, A4, A6, B4, B5, working_hours_group, life_satisfaction, sleep_status, work_load
-        ]
-        features = np.array([feature_values])
-        if len(features[0])!= expected_feature_count:
-            # 如果特征数量不匹配，使用零填充来达到模型期望的特征数量
-            padded_features = np.pad(features, ((0, 0), (0, expected_feature_count - len(features[0]))), 'constant')
-            predicted_class = model.predict(padded_features)[0]
-            predicted_proba = model.predict_proba(padded_features)[0]
-        else:
-            predicted_class = model.predict(features)[0]
-            predicted_proba = model.predict_proba(features)[0]
+        # 获取用户输入，并进行数据类型检查和转换
+        user_inputs = {
+            '年龄': int(age),
+            'A2': int(A2),
+            'A3': int(A3),
+            'A5': int(A5),
+            'B3': int(overtime_hours),
+            'B4': int(B4),
+            'B5': int(B5),
+            'smokeG': int(smoke),
+            'exerciseG3': exercise_options[exercise],
+            '工龄': int(service_years),
+            '工时分组': int(working_hours_group),
+            '生活满意度': int(life_satisfaction),
+            '抑郁症状级别': int(depression_level),
+            '睡眠状况': int(sleep_status),
+            '疲劳蓄积程度': int(work_load)
+        }
+
+        # 按照固定顺序整理特征值
+        feature_values = [user_inputs[feature] for feature in model_input_features]
+        features_array = np.array([feature_values])
+
+        predicted_class = model.predict(features_array)[0]
+        predicted_proba = model.predict_proba(features_array)[0]
 
         # 将数字对应转换为文本及格式化概率输出
         category_mapping = {'无职业紧张症状': 0, '轻度职业紧张症状': 1, '中度职业紧张症状': 2, '重度职业紧张症状': 3}
@@ -161,10 +191,7 @@ def predict():
         st.write(advice)
 
         # 进行 SHAP 值计算，不直接使用 DMatrix
-        if len(features[0])!= expected_feature_count:
-            data_df = pd.DataFrame(padded_features[0].reshape(1, -1), columns=model_input_features)
-        else:
-            data_df = pd.DataFrame(features[0].reshape(1, -1), columns=model_input_features)
+        data_df = pd.DataFrame(features_array[0].reshape(1, -1), columns=model_input_features)
         explainer = shap.TreeExplainer(model)
         shap_values = explainer.shap_values(data_df)
 

@@ -181,10 +181,15 @@ def predict():
         explainer = shap.TreeExplainer(model)
         shap_values = explainer.shap_values(data_df)
 
+        # 更加谨慎地处理 expected_value
+        base_value = explainer.expected_value if not isinstance(explainer.expected_value, list) else explainer.expected_value[0]
+        if base_value is None:
+            raise ValueError("Unable to determine base value for SHAP force plot.")
+
         # 显示 SHAP 值汇总图（蜂巢图）
         st.subheader("SHAP 值汇总图（蜂巢图）")
         plt.figure()
-        shap.summary_plot(shap_values, data_df, feature_names=data_df.columns, plot_type="dot", show=False)
+        shap.summary_plot(shap_values, data_df, feature_names=model_input_features, plot_type="dot", show=False)
         plt.savefig("SHAP_dot_summary_plot.pdf", format='pdf', bbox_inches='tight')
         st.pyplot()
 
@@ -200,7 +205,7 @@ def predict():
         # 创建组合图表（蜂巢图和条形图）
         st.subheader("组合图表（蜂巢图和条形图）")
         fig, ax1 = plt.subplots(figsize=(10, 8), dpi=1200)
-        shap.summary_plot(shap_values, data_df, feature_names=data_df.columns, plot_type="dot", show=False, color_bar=True)
+        shap.summary_plot(shap_values, data_df, feature_names=model_input_features, plot_type="dot", show=False, color_bar=True)
         plt.gca().set_position([0.2, 0.2, 0.65, 0.65])  # 调整图表位置，留出右侧空间放热度条
 
         ax1 = plt.gca()

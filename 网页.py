@@ -196,17 +196,17 @@ def predict():
             shap.initjs()
             plt.figure(figsize=(10, 5))
             force_plot = shap.force_plot(base_value, shap_values[0], data_df, matplotlib=True)
-            plt.title('SHAP 力图', fontproperties=font_prop_zh)
-            plt.xlabel('特征', fontproperties=font_prop_zh)
-            plt.ylabel('SHAP 值', fontproperties=font_prop_zh)
+            plt.title('SHAP 力图')
+            plt.xlabel('特征')
+            plt.ylabel('SHAP 值')
             st.pyplot(plt.gcf())
         except Exception as e:
             st.write(f"Error in force plot: {e}")
             # 如果 force plot 失败，尝试其他绘图方法
             shap.summary_plot(shap_values, data_df, show=False)
-            plt.title('SHAP 值汇总图', fontproperties=font_prop_zh)
-            plt.xlabel('特征', fontproperties=font_prop_zh)
-            plt.ylabel('SHAP 值', fontproperties=font_prop_zh)
+            plt.title('SHAP 值汇总图')
+            plt.xlabel('特征')
+            plt.ylabel('SHAP 值')
             st.pyplot(plt.gcf())
     except Exception as e:
         st.write(f"Error in prediction: {e}")

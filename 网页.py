@@ -6,6 +6,7 @@ import shap
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 import xgboost as xgb
+from matplotlib.font_manager import FontProperties
 
 # 设置中文字体
 plt.rcParams['font.sans-serif'] = ['Microsoft YaHei']  # 或者你系统中的其他中文字体

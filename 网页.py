@@ -197,12 +197,12 @@ def predict():
             st.pyplot(plt.gcf())
         except Exception as e:
             st.write(f"Error in force plot: {e}")
-        # 如果 force plot 失败，尝试其他绘图方法
-        shap.summary_plot(shap_values, data_df, show=False)
-        plt.title('SHAP 值汇总图', fontproperties=font_prop_zh)
-        plt.xlabel('特征', fontproperties=font_prop_zh)
-        plt.ylabel('SHAP 值', fontproperties=font_prop_zh)
-        st.pyplot(plt.gcf())
+            # 如果 force plot 失败，尝试其他绘图方法
+            shap.summary_plot(shap_values, data_df, show=False)
+            plt.title('SHAP 值汇总图', fontproperties=font_prop_zh)
+            plt.xlabel('特征', fontproperties=font_prop_zh)
+            plt.ylabel('SHAP 值', fontproperties=font_prop_zh)
+            st.pyplot(plt.gcf())
     
 if st.button("预测"):
     predict()

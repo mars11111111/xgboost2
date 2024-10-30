@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 import xgboost as xgb
 
-# 设置matplotlib的中文字体
-plt.rcParams['font.sans-serif'] = ['Microsoft YaHei']  # 或者您系统中的其他中文字体
+# 设置中文字体
+plt.rcParams['font.sans-serif'] = ['Microsoft YaHei']  # 或者你系统中的其他中文字体
 plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
 
 # 加载模型
@@ -209,9 +209,10 @@ def predict():
             print(f"Error in force plot: {e}")
             # 如果 force plot 失败，尝试其他绘图方法
             shap.summary_plot(shap_values, data_df, show=False)
-            plt.title('SHAP 值汇总图')
-            plt.xlabel('特征')
-            plt.ylabel('SHAP 值')
+            font = FontProperties(fname='/path/to/SimHei.ttf')  # 替换为你的字体文件路径
+            plt.title('SHAP 值汇总图', fontproperties=font)
+            plt.xlabel('特征', fontproperties=font)
+            plt.ylabel('SHAP 值', fontproperties=font)
             plt.savefig("shap_summary_plot.png", bbox_inches='tight', dpi=1200)
 
         st.image("shap_summary_plot.png")

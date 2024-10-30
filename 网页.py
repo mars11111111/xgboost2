@@ -8,8 +8,8 @@ import matplotlib.font_manager as fm
 import xgboost as xgb
 from matplotlib.font_manager import FontProperties
 
-# 设置中文字体
-plt.rcParams['font.sans-serif'] = ['Microsoft YaHei']  # 或者你系统中的其他中文字体
+# 设置中文字体为微软雅黑，确保路径正确
+plt.rcParams['font.sans-serif'] = ['Microsoft YaHei']  # 'Microsoft YaHei'是微软雅黑的字体名称
 plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
 
 # 加载模型

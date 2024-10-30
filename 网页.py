@@ -200,6 +200,14 @@ def predict():
             plt.savefig(f"SHAP_class_{i+1}_bar_summary_plot.pdf", format='pdf', bbox_inches='tight')
             st.pyplot()
 
+        # 显示每个类别的 SHAP 力图
+        st.subheader("SHAP 力图")
+        for i, shap_values_class in enumerate(shap_values_list):
+            shap.force_plot(explainer.expected_value[i], shap_values_class[0], data_df.values[0], feature_names=model_input_features, show=False)
+            plt.title(f"Class {i+1} SHAP Force Plot")
+            plt.savefig(f"SHAP_class_{i+1}_force_plot.png", format='png', bbox_inches='tight')
+            st.pyplot()
+
     except Exception as e:
         st.write(f"出现错误：{e}")
 

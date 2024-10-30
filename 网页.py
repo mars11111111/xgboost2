@@ -7,6 +7,10 @@ import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 import xgboost as xgb
 
+# 设置matplotlib的中文字体
+plt.rcParams['font.sans-serif'] = ['Microsoft YaHei']  # 或者您系统中的其他中文字体
+plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
+
 # 加载模型
 try:
     model = joblib.load('best_model.pkl')
@@ -113,7 +117,6 @@ work_load = st.slider("疲劳积蓄程度（1 - 5）：", min_value=1, max_value
 # 抑郁症状级别滑块
 depression_level = st.slider("抑郁症状级别（1 - 5）：", min_value=1, max_value=5, value=3)
 
-
 def predict():
     """
     进行职业紧张预测并生成建议和可视化。
@@ -187,7 +190,6 @@ def predict():
             )
         else:
             advice = "预测结果出现未知情况。"
-
         st.write(advice)
 
         # 进行 SHAP 值计算，不直接使用 DMatrix
@@ -196,8 +198,7 @@ def predict():
         shap_values = explainer.shap_values(data_df)
 
         # 更加谨慎地处理 expected_value
-        base_value = explainer.expected_value if not isinstance(explainer.expected_value, list) else (
-            explainer.expected_value[0] if len(explainer.expected_value) > 0 else None)
+        base_value = explainer.expected_value if not isinstance(explainer.expected_value, list) else explainer.expected_value[0]
         if base_value is None:
             raise ValueError("Unable to determine base value for SHAP force plot.")
 
@@ -207,15 +208,6 @@ def predict():
         except Exception as e:
             print(f"Error in force plot: {e}")
             # 如果 force plot 失败，尝试其他绘图方法
-            fonts = fm.findSystemFonts(fontpaths=None, fontext='ttf')
-            font_names = [fm.FontProperties(fname=fname).get_name() for fname in fonts]
-            if 'SimHei' in font_names:
-                plt.rcParams['font.sans-serif'] = ['SimHei']
-            elif 'Microsoft YaHei' in font_names:
-                plt.rcParams['font.sans-serif'] = ['Microsoft YaHei']
-            else:
-                plt.rcParams['font.sans-serif'] = [font_names[0]] if font_names else ['DejaVu Sans']
-            plt.rcParams['axes.unicode_minus'] = False
             shap.summary_plot(shap_values, data_df, show=False)
             plt.title('SHAP 值汇总图')
             plt.xlabel('特征')
@@ -225,8 +217,5 @@ def predict():
         st.image("shap_summary_plot.png")
     except Exception as e:
         st.write(f"出现错误：{e}")
-
-
-# 添加预测按钮
 if st.button("预测"):
     predict()

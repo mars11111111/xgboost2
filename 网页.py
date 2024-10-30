@@ -197,7 +197,7 @@ def predict():
             advice = "预测结果出现未知情况。"
         st.write(advice)
 
-        # 进行 SHAP 值计算，不直接使用 DMatrix
+        # 进行 SHAP 值计算
         data_df = pd.DataFrame(features_array[0].reshape(1, -1), columns=model_input_features)
         explainer = shap.TreeExplainer(model)
         shap_values = explainer.shap_values(data_df)
@@ -205,22 +205,14 @@ def predict():
         # 更加谨慎地处理 expected_value
         base_value = explainer.expected_value if not isinstance(explainer.expected_value, list) else explainer.expected_value[0]
         if base_value is None:
-            raise ValueError("Unable to determine base value for SHAP force plot.")
+            raise ValueError("Unable to determine base value for SHAP summary plot.")
 
-        try:
-            shap.plots.force(base_value, shap_values[0], data_df)
-            plt.savefig("shap_force_plot.png", bbox_inches='tight', dpi=1200)
-        except Exception as e:
-            print(f"Error in force plot: {e}")
-            # 如果 force plot 失败，尝试其他绘图方法
-            shap.summary_plot(shap_values, data_df, plot_type="bar",show=False)
-            plt.title('SHAP 值汇总图')
-            plt.xlabel('特征')
-            plt.ylabel('SHAP 值')
-            plt.savefig("shap_summary_plot.png", bbox_inches='tight', dpi=1200)
+        # 绘制 SHAP 特征重要性条形图
+        shap.summary_plot(shap_values, data_df, plot_type="bar")
+        st.pyplot()
 
-        st.image("shap_summary_plot.png")
     except Exception as e:
         st.write(f"出现错误：{e}")
+
 if st.button("预测"):
     predict()

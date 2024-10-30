@@ -213,7 +213,7 @@ def predict():
         except Exception as e:
             print(f"Error in force plot: {e}")
             # 如果 force plot 失败，尝试其他绘图方法
-            shap.summary_plot(shap_values, data_df, show=False)
+            shap.summary_plot(shap_values, data_df, plot_type="bar",show=False)
             plt.title('SHAP 值汇总图')
             plt.xlabel('特征')
             plt.ylabel('SHAP 值')

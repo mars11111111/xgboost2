@@ -181,19 +181,45 @@ def predict():
         explainer = shap.TreeExplainer(model)
         shap_values = explainer.shap_values(data_df)
 
-        # 更加谨慎地处理 expected_value
-        base_value = explainer.expected_value if not isinstance(explainer.expected_value, list) else explainer.expected_value[0]
-        if base_value is None:
-            raise ValueError("Unable to determine base value for SHAP force plot.")
+        # 显示 SHAP 值汇总图（蜂巢图）
+        st.subheader("SHAP 值汇总图（蜂巢图）")
+        plt.figure()
+        shap.summary_plot(shap_values, data_df, feature_names=data_df.columns, plot_type="dot", show=False)
+        plt.savefig("SHAP_dot_summary_plot.pdf", format='pdf', bbox_inches='tight')
+        st.pyplot()
 
-        # 显示 SHAP 值汇总图
-        st.subheader("SHAP 值汇总图")
-        # 选择正确的 SHAP 值切片
-        if isinstance(shap_values, list) and len(shap_values) > 0:
-            shap_values_plot = shap_values[0]  # 假设是二分类问题，取第一个类的SHAP值
-        else:
-            shap_values_plot = shap_values
-        shap.summary_plot(shap_values_plot, data_df, plot_type="bar")  # 使用 plot_type="bar" 绘制条形图
+        # 显示特征重要性的条形图
+        st.subheader("特征重要性的条形图")
+        plt.figure(figsize=(10, 5), dpi=1200)
+        shap.summary_plot(shap_values, data_df, plot_type="bar", show=False)
+        plt.title('SHAP 值汇总图（条形图）')
+        plt.tight_layout()
+        plt.savefig("SHAP_bar_summary_plot.pdf", format='pdf', bbox_inches='tight')
+        st.pyplot()
+
+        # 创建组合图表（蜂巢图和条形图）
+        st.subheader("组合图表（蜂巢图和条形图）")
+        fig, ax1 = plt.subplots(figsize=(10, 8), dpi=1200)
+        shap.summary_plot(shap_values, data_df, feature_names=data_df.columns, plot_type="dot", show=False, color_bar=True)
+        plt.gca().set_position([0.2, 0.2, 0.65, 0.65])  # 调整图表位置，留出右侧空间放热度条
+
+        ax1 = plt.gca()
+        ax2 = ax1.twiny()
+        shap.summary_plot(shap_values, data_df, plot_type="bar", show=False)
+        plt.gca().set_position([0.2, 0.2, 0.65, 0.65])  # 调整图表位置，与蜂巢图对齐
+
+        ax2.axhline(y=13, color='gray', linestyle='-', linewidth=1)  # 注意y值应该对应顶部
+        bars = ax2.patches
+        for bar in bars:
+            bar.set_alpha(0.2)  # 设置透明度
+
+        ax1.set_xlabel('Shapley Value Contribution (Bee Swarm)', fontsize=12)
+        ax2.set_xlabel('Mean Shapley Value (Feature Importance)', fontsize=12)
+        ax2.xaxis.set_label_position('top')  # 将标签移动到顶部
+        ax2.xaxis.tick_top()  # 将刻度也移动到顶部
+        ax1.set_ylabel('Features', fontsize=12)
+        plt.tight_layout()
+        plt.savefig("SHAP_combined_plot.pdf", format='pdf', bbox_inches='tight')
         st.pyplot()
 
     except Exception as e:

@@ -176,40 +176,33 @@ def predict():
             advice = "预测结果出现未知情况。"
         st.write(advice)
 
-        # 进行 SHAP 值计算
+        # 进行 SHAP 值计算，不直接使用 DMatrix
         data_df = pd.DataFrame(features_array[0].reshape(1, -1), columns=model_input_features)
         explainer = shap.TreeExplainer(model)
-        shap_values_list = explainer.shap_values(data_df)
+        shap_values = explainer.shap_values(data_df)
 
-        # 显示每个类别的 SHAP 值汇总图（蜂巢图）
-        st.subheader("SHAP 值汇总图（蜂巢图）")
-        for i, shap_values_class in enumerate(shap_values_list):
-            plt.figure()
-            shap.summary_plot(shap_values_class, data_df, feature_names=model_input_features, plot_type="dot", show=False)
-            plt.title(f"Class {i+1} SHAP Values")
-            plt.savefig(f"SHAP_class_{i+1}_dot_summary_plot.pdf", format='pdf', bbox_inches='tight')
-            st.pyplot()
+        # 更加谨慎地处理 expected_value
+        base_value = explainer.expected_value if not isinstance(explainer.expected_value, list) else explainer.expected_value[0]
+        if base_value is None:
+            raise ValueError("Unable to determine base value for SHAP force plot.")
 
-        # 显示每个类别的特征重要性的条形图
-        st.subheader("特征重要性的条形图")
-        for i, shap_values_class in enumerate(shap_values_list):
-            plt.figure(figsize=(10, 5), dpi=1200)
-            shap.summary_plot(shap_values_class, data_df, plot_type="bar", show=False)
-            plt.title(f'Class {i+1} SHAP Values')
-            plt.tight_layout()
-            plt.savefig(f"SHAP_class_{i+1}_bar_summary_plot.pdf", format='pdf', bbox_inches='tight')
-            st.pyplot()
-
-        # 显示每个类别的 SHAP 力图
-        st.subheader("SHAP 力图")
-        for i, shap_values_class in enumerate(shap_values_list):
-            shap.force_plot(explainer.expected_value[i], shap_values_class[0], data_df.values[0], feature_names=model_input_features, show=False)
-            plt.title(f"Class {i+1} SHAP Force Plot")
-            plt.savefig(f"SHAP_class_{i+1}_force_plot.png", format='png', bbox_inches='tight')
-            st.pyplot()
-
-    except Exception as e:
-        st.write(f"出现错误：{e}")
-
+        try:
+            # 使用 matplotlib 绘制 SHAP 力图
+            shap.initjs()
+            plt.figure(figsize=(10, 5))
+            force_plot = shap.force_plot(base_value, shap_values[0], data_df, matplotlib=True)
+            plt.title('SHAP 力图', fontproperties=font_prop_zh)
+            plt.xlabel('特征', fontproperties=font_prop_zh)
+            plt.ylabel('SHAP 值', fontproperties=font_prop_zh)
+            st.pyplot(plt.gcf())
+        except Exception as e:
+            st.write(f"Error in force plot: {e}")
+        # 如果 force plot 失败，尝试其他绘图方法
+        shap.summary_plot(shap_values, data_df, show=False)
+        plt.title('SHAP 值汇总图', fontproperties=font_prop_zh)
+        plt.xlabel('特征', fontproperties=font_prop_zh)
+        plt.ylabel('SHAP 值', fontproperties=font_prop_zh)
+        st.pyplot(plt.gcf())
+    
 if st.button("预测"):
     predict()

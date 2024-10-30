@@ -175,15 +175,6 @@ def predict():
         else:
             advice = "预测结果出现未知情况。"
         st.write(advice)
-
-        # Calculate SHAP values and display force plot
-        explainer = shap.TreeExplainer(model)
-        shap_values = explainer.shap_values(data_df)
-
-        shap.force_plot(explainer.expected_value, shap_values[0], data_df, matplotlib=True)
-        plt.savefig("shap_force_plot.png", bbox_inches='tight', dpi=1200)
- 
-        st.image("shap_force_plot.png")
     
         # 创建SHAP解释器
         explainer = shap.TreeExplainer(model)

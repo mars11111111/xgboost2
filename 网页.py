@@ -185,38 +185,18 @@ def predict():
  
         st.image("shap_force_plot.png")
     
-        # 进行 SHAP 值计算，不直接使用 DMatrix
-        data_df = pd.DataFrame(features_array[0].reshape(1, -1), columns=model_input_features)
+        # 创建SHAP解释器
         explainer = shap.TreeExplainer(model)
-        shap_values = explainer.shap_values(data_df)
 
-        # 更加谨慎地处理 expected_value
-        base_value = explainer.expected_value if not isinstance(explainer.expected_value, list) else explainer.expected_value[0]
-        if base_value is None:
-            raise ValueError("Unable to determine base value for SHAP force plot.")
+        # 计算SHAP值
+        shap_values = explainer.shap_values(pd.DataFrame([feature_values], columns=model_input_features))
 
-        # 更加谨慎地处理 expected_value
-        base_value = explainer.expected_value if not isinstance(explainer.expected_value, list) else explainer.expected_value[0]
-        if base_value is None:
-            raise ValueError("Unable to determine base value for SHAP force plot.")
-
-        try:
-            # 使用 matplotlib 绘制 SHAP 力图
-            shap.initjs()
-            plt.figure(figsize=(10, 5))
-            force_plot = shap.force_plot(base_value, shap_values[0], data_df, matplotlib=True)
-            plt.title('SHAP 力图')
-            plt.xlabel('特征')
-            plt.ylabel('SHAP 值')
-            st.pyplot(plt.gcf())
-        except Exception as e:
-            st.write(f"Error in force plot: {e}")
-            # 如果 force plot 失败，尝试其他绘图方法
-            shap.summary_plot(shap_values, data_df, show=False)
-            plt.title('SHAP 值汇总图')
-            plt.xlabel('特征')
-            plt.ylabel('SHAP 值')
-            st.pyplot(plt.gcf())
+        # 绘制SHAP图
+        shap.summary_plot(shap_values, pd.DataFrame([feature_values], columns=model_input_features), show=False)
+        plt.title('SHAP 值汇总图')
+        plt.xlabel('特征')
+        plt.ylabel('SHAP 值')
+        st.pyplot(plt.gcf())
     except Exception as e:
         st.write(f"Error in prediction: {e}")
 

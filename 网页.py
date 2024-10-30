@@ -186,7 +186,7 @@ def predict():
         if base_value is None:
             raise ValueError("Unable to determine base value for SHAP force plot.")
 
-        try:
+    try:
             # 使用 matplotlib 绘制 SHAP 力图
             shap.initjs()
             plt.figure(figsize=(10, 5))
@@ -195,8 +195,8 @@ def predict():
             plt.xlabel('特征', fontproperties=font_prop_zh)
             plt.ylabel('SHAP 值', fontproperties=font_prop_zh)
             st.pyplot(plt.gcf())
-        except Exception as e:
-            st.write(f"Error in force plot: {e}")
+    except Exception as e:
+        st.write(f"Error in force plot: {e}")
         # 如果 force plot 失败，尝试其他绘图方法
         shap.summary_plot(shap_values, data_df, show=False)
         plt.title('SHAP 值汇总图', fontproperties=font_prop_zh)

@@ -210,7 +210,7 @@ def predict():
             print(f"Error in force plot: {e}")
             # 如果 force plot 失败，尝试其他绘图方法
             shap.summary_plot(shap_values, data_df, show=False)
-            font = FontProperties(fname='/path/to/SimHei.ttf')  # 替换为你的字体文件路径
+            font = FontProperties(fname='C:/Windows/Fonts/SimHei.ttf')  # 替换为你的字体文件路径
             plt.title('SHAP 值汇总图', fontproperties=font)
             plt.xlabel('特征', fontproperties=font)
             plt.ylabel('SHAP 值', fontproperties=font)

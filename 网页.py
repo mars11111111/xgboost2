@@ -123,9 +123,6 @@ work_load = st.slider("疲劳积蓄程度（1 - 5）：", min_value=1, max_value
 depression_level = st.slider("抑郁症状级别（1 - 5）：", min_value=1, max_value=5, value=3)
 
 def predict():
-    """
-    进行职业紧张预测并生成建议和可视化。
-    """
     try:
         # 获取用户输入，并进行数据类型检查和转换
         user_inputs = {
@@ -166,33 +163,15 @@ def predict():
 
         # 根据预测结果生成建议
         probability = predicted_proba[predicted_class] * 100
-        print(f"原始概率值：{predicted_proba[predicted_class]}")
-        print(f"计算后的概率值：{probability}")
-
+        advice = ""
         if predicted_category == '无职业紧张症状':
-            advice = (
-                f"根据我们的模型，该员工无职业紧张症状。"
-                f"模型预测该员工无职业紧张症状的概率为 {probability:.2f}%。"
-                "请继续保持良好的工作和生活状态。"
-            )
+            advice = f"根据我们的模型，该员工无职业紧张症状。模型预测该员工无职业紧张症状的概率为 {probability:.2f}%。请继续保持良好的工作和生活状态。"
         elif predicted_category == '轻度职业紧张症状':
-            advice = (
-                f"根据我们的模型，该员工有轻度职业紧张症状。"
-                f"模型预测该员工职业紧张程度为轻度的概率为 {probability:.2f}%。"
-                "建议您适当调整工作节奏，关注自身身心健康。"
-            )
+            advice = f"根据我们的模型，该员工有轻度职业紧张症状。模型预测该员工职业紧张程度为轻度的概率为 {probability:.2f}%。建议您适当调整工作节奏，关注自身身心健康。"
         elif predicted_category == '中度职业紧张症状':
-            advice = (
-                f"根据我们的模型，该员工有中度职业紧张症状。"
-                f"模型预测该员工职业紧张程度为中度的概率为 {probability:.2f}%。"
-                "建议您寻求专业帮助，如心理咨询或与上级沟通调整工作。"
-            )
+            advice = f"根据我们的模型，该员工有中度职业紧张症状。模型预测该员工职业紧张程度为中度的概率为 {probability:.2f}%。建议您寻求专业帮助，如心理咨询或与上级沟通调整工作。"
         elif predicted_category == '重度职业紧张症状':
-            advice = (
-                f"根据我们的模型，该员工有重度职业紧张症状。"
-                f"模型预测该员工职业紧张程度为重度的概率为 {probability:.2f}%。"
-                "强烈建议您立即采取行动，如休假、寻求医疗支持或与管理层协商改善工作环境。"
-            )
+            advice = f"根据我们的模型，该员工有重度职业紧张症状。模型预测该员工职业紧张程度为重度的概率为 {probability:.2f}%。强烈建议您立即采取行动，如休假、寻求医疗支持或与管理层协商改善工作环境。"
         else:
             advice = "预测结果出现未知情况。"
         st.write(advice)
@@ -205,10 +184,16 @@ def predict():
         # 更加谨慎地处理 expected_value
         base_value = explainer.expected_value if not isinstance(explainer.expected_value, list) else explainer.expected_value[0]
         if base_value is None:
-            raise ValueError("Unable to determine base value for SHAP summary plot.")
+            raise ValueError("Unable to determine base value for SHAP force plot.")
 
-        # 绘制 SHAP 特征重要性条形图
-        shap.summary_plot(shap_values, data_df, plot_type="bar")
+        # 显示 SHAP 值汇总图
+        st.subheader("SHAP 值汇总图")
+        shap.summary_plot(shap_values, data_df)
+        st.pyplot()
+
+        # 显示特征重要性的条形图
+        st.subheader("特征重要性条形图")
+        shap.plots.bar(shap_values)
         st.pyplot()
 
     except Exception as e:

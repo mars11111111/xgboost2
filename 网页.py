@@ -186,14 +186,20 @@ def predict():
         if base_value is None:
             raise ValueError("Unable to determine base value for SHAP force plot.")
 
+        # 将 shap_values 转换为 shap.Explanation 对象
+        shap_values_obj = shap.Explanation(values=shap_values, 
+                                           base_values=explainer.expected_value, 
+                                           data=data_df, 
+                                           feature_names=model_input_features)
+
         # 显示 SHAP 值汇总图
         st.subheader("SHAP 值汇总图")
-        shap.summary_plot(shap_values, data_df)
+        shap.summary_plot(shap_values_obj, data_df)
         st.pyplot()
 
         # 显示特征重要性的条形图
         st.subheader("特征重要性条形图")
-        shap.plots.bar(shap_values)
+        shap.plots.bar(shap_values_obj)
         st.pyplot()
 
     except Exception as e:

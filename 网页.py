@@ -184,7 +184,7 @@ def predict():
         shap_explanation = shap.Explanation(values=shap_values[0], base_values=explainer.expected_value, data=pd.DataFrame([feature_values], columns=model_input_features))
 
         # 绘制瀑布图
-        shap.plots.waterfall(shap_explanation, max_display=10)
+        shap.plots.waterfall(shap_explanation[0], max_display=10)
         plt.title('SHAP 值瀑布图')
         st.pyplot(plt.gcf())
     except Exception as e:

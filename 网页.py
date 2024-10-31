@@ -182,11 +182,9 @@ def predict():
         # 计算SHAP值
         shap_values = explainer.shap_values(pd.DataFrame([feature_values], columns=model_input_features))
 
-        # 绘制SHAP图
-        shap.summary_plot(shap_values, pd.DataFrame([feature_values], columns=model_input_features), show=False)
-        plt.title('SHAP 值汇总图')
-        plt.xlabel('特征')
-        plt.ylabel('SHAP 值')
+        # 绘制瀑布图
+        shap.plots.waterfall(shap_values[0], max_display=10)
+        plt.title('SHAP 值瀑布图')
         st.pyplot(plt.gcf())
     except Exception as e:
         st.write(f"Error in prediction: {e}")
